@@ -1,0 +1,1306 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dental AI - منصة الذكاء الاصطناعي لطب الأسنان</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdfa',
+                            100: '#ccfbf1',
+                            500: '#14b8a6',
+                            600: '#0d9488',
+                            700: '#0f766e',
+                            800: '#115e59',
+                            900: '#134e4a',
+                        },
+                        medical: {
+                            blue: '#2563eb',
+                            dark: '#0f172a',
+                            accent: '#06b6d4'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Tajawal', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts: Tajawal -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Three.js Library for 3D Teeth Visualizer -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body { font-family: 'Tajawal', sans-serif; }
+        .glass {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .dark .glass {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-300 min-h-screen flex flex-col justify-between">
+
+    <!-- Notification Toast Container -->
+    <div id="toast-container" class="fixed top-5 left-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- Navigation Header -->
+    <header class="sticky top-0 z-40 glass shadow-sm transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                
+                <!-- Logo & Brand -->
+                <div class="flex items-center space-x-3 space-x-reverse cursor-pointer" onclick="switchTab('home')">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-brand-600 via-teal-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-teal-500/30 text-white text-2xl font-black">
+                        <i class="fa-solid fa-[#tooth]"></i> 🦷
+                    </div>
+                    <div>
+                        <span class="text-2xl font-extrabold bg-gradient-to-r from-brand-700 via-teal-600 to-cyan-500 bg-clip-text text-transparent dark:from-teal-300 dark:to-cyan-400">Dental AI</span>
+                        <span class="block text-xs text-slate-500 dark:text-slate-400 font-medium">الذكاء الاصطناعي لطب الأسنان</span>
+                    </div>
+                </div>
+
+                <!-- Desktop Navigation Links -->
+                <nav class="hidden md:flex items-center space-x-1 space-x-reverse bg-slate-100/80 dark:bg-slate-800/80 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-700">
+                    <button onclick="switchTab('home')" id="nav-home" class="nav-btn px-5 py-2 rounded-xl text-sm font-bold transition-all text-brand-700 bg-white shadow-sm dark:bg-slate-700 dark:text-teal-300">
+                        <i class="fa-solid fa-[#house] ml-1.5"></i> الرئيسية
+                    </button>
+                    <button onclick="switchTab('assistant')" id="nav-assistant" class="nav-btn px-5 py-2 rounded-xl text-sm font-bold text-slate-600 hover:text-brand-600 dark:text-slate-300 dark:hover:text-white transition-all">
+                        <i class="fa-solid fa-robot ml-1.5 text-teal-500"></i> المساعد الذكي AI
+                    </button>
+                    <button onclick="switchTab('library')" id="nav-library" class="nav-btn px-5 py-2 rounded-xl text-sm font-bold text-slate-600 hover:text-brand-600 dark:text-slate-300 dark:hover:text-white transition-all">
+                        <i class="fa-solid fa-book-medical ml-1.5"></i> المكتبة الطبية
+                    </button>
+                    <button onclick="switchTab('admin')" id="nav-admin" class="nav-btn px-5 py-2 rounded-xl text-sm font-bold text-slate-600 hover:text-brand-600 dark:text-slate-300 dark:hover:text-white transition-all">
+                        <i class="fa-solid fa-sliders ml-1.5"></i> لوحة التحكم
+                    </button>
+                </nav>
+
+                <!-- Actions: Theme, Auth, Lang -->
+                <div class="flex items-center space-x-3 space-x-reverse">
+                    <!-- Dark Mode Toggle -->
+                    <button onclick="toggleDarkMode()" class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-yellow-400 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center transition-all">
+                        <i id="theme-icon" class="fa-solid fa-moon"></i>
+                    </button>
+
+                    <!-- Language Selector Placeholder -->
+                    <button onclick="toggleLanguage()" id="lang-btn" class="px-3 py-2 text-xs font-bold rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">
+                        EN
+                    </button>
+
+                    <!-- User Account / Role Badge -->
+                    <div id="user-area" class="flex items-center">
+                        <button onclick="openAuthModal()" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-brand-600 to-teal-500 hover:from-brand-700 hover:to-teal-600 text-white font-bold text-sm shadow-md shadow-brand-500/20 transition-all">
+                            <i class="fa-solid fa-right-to-bracket ml-1.5"></i> تسجيل الدخول
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="flex-grow">
+
+        <!-- ================= PAGE 1: HOME PAGE ================= -->
+        <section id="page-home" class="page-content active-page">
+            
+            <!-- Hero Section -->
+            <div class="relative overflow-hidden bg-gradient-to-b from-teal-50/50 via-slate-50 to-white dark:from-slate-900/60 dark:via-slate-950 dark:to-slate-950 py-16 lg:py-24">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                        
+                        <div class="lg:col-span-7 space-y-6 text-center lg:text-right">
+                            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-teal-100/80 dark:bg-teal-900/40 text-brand-700 dark:text-teal-300 text-xs font-extrabold border border-teal-200 dark:border-teal-700/50 shadow-sm">
+                                <span class="flex h-2 w-2 rounded-full bg-teal-500 animate-ping"></span>
+                                منصة طبية مدعومة بالذكاء الاصطناعي التوليدي 🤖
+                            </div>
+
+                            <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white leading-tight">
+                                مستقبل المعرفة والعناية بـ <span class="bg-gradient-to-r from-brand-600 via-teal-500 to-cyan-500 bg-clip-text text-transparent">صحة الأسنان</span>
+                            </h1>
+
+                            <p class="text-lg text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl mx-auto lg:mx-0">
+                                استشر المساعد الطاقي الذكي المتخصص في طب الفم والأسنان، واستكشف المكتبة التفاعلية والشروح ثلاثية الأبعاد لمختلف العلاجات والأمراض، تحت إشراف وتوعية علمية موثوقة.
+                            </p>
+
+                            <!-- Quick Search Bar -->
+                            <div class="relative max-w-xl mx-auto lg:mx-0">
+                                <div class="relative flex items-center shadow-xl rounded-2xl overflow-hidden bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                                    <i class="fa-solid fa-magnifying-glass text-slate-400 px-4 text-lg"></i>
+                                    <input type="text" id="home-search-input" onkeyup="handleHomeSearch(event)" placeholder="ابحث عن مرض، علاج، أو مصطلح طبي..." class="w-full py-4 bg-transparent outline-none text-slate-800 dark:text-white text-sm font-medium">
+                                    <button onclick="executeHomeSearch()" class="px-6 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm transition-all">
+                                        بحث
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-4">
+                                <button onclick="switchTab('assistant')" class="px-8 py-4 rounded-2xl bg-gradient-to-r from-brand-600 to-teal-500 hover:from-brand-700 hover:to-teal-600 text-white font-extrabold text-base shadow-xl shadow-teal-500/25 transition-all transform hover:-translate-y-0.5">
+                                    <i class="fa-solid fa-headset ml-2"></i> بدء استشارة الذكاء الاصطناعي
+                                </button>
+                                <button onclick="switchTab('library')" class="px-8 py-4 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-extrabold text-base shadow-md hover:bg-slate-50 dark:hover:bg-slate-700 transition-all">
+                                    <i class="fa-solid fa-book-open ml-2 text-teal-500"></i> تصفح المكتبة الطبية
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Interactive 3D Jaw / Teeth Visualizer Canvas -->
+                        <div class="lg:col-span-5">
+                            <div class="relative w-full h-80 sm:h-96 rounded-3xl glass p-4 shadow-2xl overflow-hidden border border-white/40 dark:border-slate-700/50 flex flex-col items-center justify-center">
+                                <div class="absolute top-4 right-4 z-10 bg-slate-900/70 text-white px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-sm">
+                                    <i class="fa-solid fa-cube ml-1 text-teal-400"></i> مجسم 3D تفاعلي للفك والأسنان
+                                </div>
+                                <div id="three-canvas-container" class="w-full h-full cursor-grab active:cursor-grabbing"></div>
+                                <div class="absolute bottom-3 left-3 z-10 text-xs text-slate-400 bg-slate-900/60 backdrop-blur-sm px-3 py-1 rounded-lg">
+                                    <i class="fa-solid fa-hand-pointer ml-1"></i> اسحب للتدوير 3D
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Categories Showcase -->
+            <div class="py-12 bg-white dark:bg-slate-900 border-y border-slate-200 dark:border-slate-800">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex justify-between items-center mb-8">
+                        <div>
+                            <h2 class="text-2xl font-bold text-slate-900 dark:text-white">أقسام العناية بالأسنان</h2>
+                            <p class="text-sm text-slate-500 dark:text-slate-400">اختر القسم لاستكشاف المقالات والمعلومات الطبية</p>
+                        </div>
+                        <button onclick="switchTab('library')" class="text-brand-600 dark:text-teal-400 text-sm font-bold hover:underline">
+                            عرض الكل <i class="fa-solid fa-arrow-left text-xs mr-1"></i>
+                        </button>
+                    </div>
+
+                    <div id="home-categories-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+                        <!-- Rendered Dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Featured Articles & Daily Tips -->
+            <div class="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                    
+                    <!-- Articles Column -->
+                    <div class="lg:col-span-2 space-y-6">
+                        <div class="flex justify-between items-center">
+                            <h2 class="text-2xl font-bold text-slate-900 dark:text-white">أحدث المقالات الطبية الموثوقة</h2>
+                        </div>
+                        <div id="home-featured-articles" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Dynamically loaded -->
+                        </div>
+                    </div>
+
+                    <!-- Daily Tips & Emergency Guidelines Sidebar -->
+                    <div class="space-y-6">
+                        <!-- Daily Tip Box -->
+                        <div class="p-6 rounded-3xl bg-gradient-to-br from-teal-500 via-brand-600 to-cyan-700 text-white shadow-xl relative overflow-hidden">
+                            <div class="absolute -right-10 -bottom-10 text-white/10 text-9xl font-black">💡</div>
+                            <div class="relative z-10 space-y-3">
+                                <span class="px-3 py-1 bg-white/20 rounded-full text-xs font-bold uppercase tracking-wider backdrop-blur-md">نصيحة اليوم الطبية</span>
+                                <h3 class="text-xl font-extrabold" id="daily-tip-title">تنظيف الأسنان بخيط الأسنان المائي</h3>
+                                <p class="text-sm text-teal-50 leading-relaxed" id="daily-tip-desc">
+                                    استخدام خيط الأسنان المائي يومياً يساعد في إزالة 99% من الترسبات بين الأسنان وفي الأماكن الدقيقة التي لا تصل إليها الفرشاة العادية.
+                                </p>
+                                <button onclick="nextDailyTip()" class="pt-2 text-xs font-bold underline flex items-center gap-1 hover:text-teal-200">
+                                    نصيحة أخرى <i class="fa-solid fa-rotate-right"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Emergency Warning Box -->
+                        <div class="p-6 rounded-3xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 space-y-3">
+                            <div class="flex items-center space-x-3 space-x-reverse text-rose-600 dark:text-rose-400 font-bold text-base">
+                                <i class="fa-solid fa-triangle-exclamation text-xl animate-bounce"></i>
+                                <h3>الحالات الطارئة للأسنان</h3>
+                            </div>
+                            <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                                إذا كنت تعاني من <strong>تورم في الوجه أو الرقبة، أو صعوبة في التنفس والبلع، أو ألم شديد جداً مصحوب بحمى عالية</strong>، فهذه حالة طارئة وتستدعي زيارة أقرب مركز طوارئ أو طبيب أسنان فوراً.
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </section>
+
+        <!-- ================= PAGE 2: AI ASSISTANT ================= -->
+        <section id="page-assistant" class="page-content hidden min-h-[calc(100vh-5rem)] p-4 sm:p-6 lg:p-8">
+            <div class="max-w-5xl mx-auto h-[80vh] flex flex-col rounded-3xl glass shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+                
+                <!-- Chat Header -->
+                <div class="px-6 py-4 bg-white/80 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                    <div class="flex items-center space-x-3 space-x-reverse">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-teal-400 flex items-center justify-center text-white text-lg shadow-md">
+                            <i class="fa-solid fa-robot"></i>
+                        </div>
+                        <div>
+                            <h2 class="font-extrabold text-slate-900 dark:text-white text-base flex items-center gap-2">
+                                المساعد الذكي لطب الأسنان (Dental AI)
+                                <span class="text-[10px] px-2 py-0.5 rounded-md bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300 font-bold">Gemini API</span>
+                            </h2>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">تثقيف طبي ذكي - غير مخصص للتشخيص النهائي</p>
+                        </div>
+                    </div>
+                    
+                    <button onclick="clearChatHistory()" class="text-xs text-slate-400 hover:text-rose-500 font-semibold px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 transition-all">
+                        <i class="fa-solid fa-trash-can ml-1"></i> مسح المحادثة
+                    </button>
+                </div>
+
+                <!-- Chat Medical Disclaimer Notice -->
+                <div class="bg-amber-50 dark:bg-amber-950/40 border-b border-amber-200 dark:border-amber-900/50 px-6 py-2.5 text-xs text-amber-800 dark:text-amber-300 flex items-center justify-between">
+                    <span>⚠️ <strong>تنبيه طبي:</strong> المعلومات المقدمة هدفها التثقيف فقط، ولا تغني عن استشارة طبيب الأسنان المختص.</span>
+                </div>
+
+                <!-- Chat Messages Scroll Container -->
+                <div id="chat-messages" class="flex-grow p-6 overflow-y-auto space-y-4 custom-scrollbar bg-slate-50/50 dark:bg-slate-950/50">
+                    
+                    <!-- Bot Welcome Message -->
+                    <div class="flex gap-3 max-w-3xl">
+                        <div class="w-8 h-8 rounded-lg bg-teal-600 text-white flex-shrink-0 flex items-center justify-center text-sm shadow">
+                            <i class="fa-solid fa-tooth"></i>
+                        </div>
+                        <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl rounded-tr-none shadow-sm border border-slate-200 dark:border-slate-800 text-sm space-y-2 text-slate-800 dark:text-slate-200">
+                            <p class="font-bold text-brand-600 dark:text-teal-400">مرحباً بك! أنا مساعدك الذكي المتخصص في صحة وطب الأسنان 🦷</p>
+                            <p>يمكنك سؤالي عن أسباب تسوس الأسنان، أعراض أمراض اللثة، طرق العناية اليومية، خطوات زراعة أو تقويم الأسنان، وشرح المصطلحات الطبية المعقدة.</p>
+                            <p class="text-xs text-slate-400 pt-1">كيف يمكنني مساعدتك اليوم؟</p>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Suggested Quick Chips -->
+                <div class="px-6 py-2 bg-white/40 dark:bg-slate-900/40 border-t border-slate-200/50 dark:border-slate-800/50 flex gap-2 overflow-x-auto custom-scrollbar text-xs">
+                    <button onclick="sendQuickChip('ما هي أسباب تسوس الأسنان وكيف أوقفه؟')" class="px-3 py-1.5 rounded-full bg-slate-100 hover:bg-teal-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 whitespace-nowrap transition-all border border-slate-200 dark:border-slate-700">
+                        🦷 أسباب تسوس الأسنان
+                    </button>
+                    <button onclick="sendQuickChip('ما الفرق بين زراعة الأسنان والتركيبات الثابتة؟')" class="px-3 py-1.5 rounded-full bg-slate-100 hover:bg-teal-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 whitespace-nowrap transition-all border border-slate-200 dark:border-slate-700">
+                        ✨ الفرق بين الزراعة والتركيبات
+                    </button>
+                    <button onclick="sendQuickChip('متى يحتاج الضرس إلى علاج عصب؟')" class="px-3 py-1.5 rounded-full bg-slate-100 hover:bg-teal-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 whitespace-nowrap transition-all border border-slate-200 dark:border-slate-700">
+                        ⚡ أعراض علاج العصب
+                    </button>
+                    <button onclick="sendQuickChip('كيف أعالج نزيف اللثة أثناء التنظيف؟')" class="px-3 py-1.5 rounded-full bg-slate-100 hover:bg-teal-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 whitespace-nowrap transition-all border border-slate-200 dark:border-slate-700">
+                        🩸 علاج نزيف اللثة
+                    </button>
+                </div>
+
+                <!-- Chat Input Box -->
+                <div class="p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800">
+                    <form onsubmit="handleChatSubmit(event)" class="flex gap-2">
+                        <input type="text" id="chat-input" placeholder="اكتب سؤالك الطبي هنا..." class="flex-grow px-5 py-3.5 rounded-xl bg-slate-100 dark:bg-slate-800 border-none outline-none text-slate-800 dark:text-white text-sm font-medium focus:ring-2 focus:ring-brand-500">
+                        <button type="submit" id="chat-send-btn" class="px-6 py-3.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2">
+                            <span>إرسال</span>
+                            <i class="fa-solid fa-paper-plane text-xs"></i>
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ================= PAGE 3: DENTAL LIBRARY ================= -->
+        <section id="page-library" class="page-content hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+            
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                <div>
+                    <h1 class="text-3xl font-extrabold text-slate-900 dark:text-white">المكتبة الطبية المتخصصة 📚</h1>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">مرجع تثقيفي شامل في مختلف علوم وطرق علاج الأسنان</p>
+                </div>
+
+                <!-- Search & Filters -->
+                <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                    <div class="relative flex-grow md:w-64">
+                        <input type="text" id="library-search-input" oninput="filterLibraryArticles()" placeholder="بحث في المكتبة..." class="w-full pl-4 pr-9 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium outline-none">
+                        <i class="fa-solid fa-magnifying-glass absolute right-3 top-3 text-slate-400 text-xs"></i>
+                    </div>
+
+                    <!-- Category Dropdown Filter -->
+                    <select id="library-category-filter" onchange="filterLibraryArticles()" class="px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold outline-none text-slate-700 dark:text-slate-300">
+                        <option value="ALL">جميع الأقسام</option>
+                    </select>
+
+                    <button onclick="toggleBookmarksOnly()" id="bookmark-filter-btn" class="px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all">
+                        <i class="fa-solid fa-bookmark text-amber-500"></i> المفضلة
+                    </button>
+                </div>
+            </div>
+
+            <!-- Articles Grid -->
+            <div id="library-articles-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Loaded dynamically -->
+            </div>
+
+        </section>
+
+        <!-- ================= PAGE 4: ADMIN DASHBOARD ================= -->
+        <section id="page-admin" class="page-content hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+            
+            <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+                
+                <!-- Admin Top Bar -->
+                <div class="p-6 bg-slate-900 text-white flex flex-wrap justify-between items-center gap-4">
+                    <div>
+                        <h1 class="text-xl font-black flex items-center gap-2">
+                            <i class="fa-solid fa-shield-halved text-teal-400"></i> لوحة الإدارة الشاملة (Admin Dashboard)
+                        </h1>
+                        <p class="text-xs text-slate-400 mt-0.5">تحكم كامل بكل المحتوى، المقالات، التصنيفات، المستخدمين، والإعدادات</p>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <span id="admin-user-badge" class="px-3 py-1 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30 text-xs font-bold">
+                            Super Admin
+                        </span>
+                        <button onclick="logoutUser()" class="px-3 py-1.5 rounded-xl bg-rose-600/80 hover:bg-rose-600 text-white text-xs font-bold transition-all">
+                            خروج <i class="fa-solid fa-right-from-bracket mr-1"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Admin Tabs Menu -->
+                <div class="flex border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 overflow-x-auto text-xs font-bold">
+                    <button onclick="switchAdminSubTab('articles')" id="admin-tab-articles" class="admin-subtab px-6 py-4 text-brand-600 border-b-2 border-brand-600 bg-white dark:bg-slate-900">
+                        <i class="fa-solid fa-newspaper ml-1.5"></i> إدارة المقالات
+                    </button>
+                    <button onclick="switchAdminSubTab('categories')" id="admin-tab-categories" class="admin-subtab px-6 py-4 text-slate-500 hover:text-slate-800 dark:text-slate-400">
+                        <i class="fa-solid fa-folder-tree ml-1.5"></i> إدارة الأقسام
+                    </button>
+                    <button onclick="switchAdminSubTab('users')" id="admin-tab-users" class="admin-subtab px-6 py-4 text-slate-500 hover:text-slate-800 dark:text-slate-400">
+                        <i class="fa-solid fa-users ml-1.5"></i> إدارة المستخدمين الصلاحيات
+                    </button>
+                    <button onclick="switchAdminSubTab('settings')" id="admin-tab-settings" class="admin-subtab px-6 py-4 text-slate-500 hover:text-slate-800 dark:text-slate-400">
+                        <i class="fa-solid fa-gear ml-1.5"></i> إعدادات المنصة و AI
+                    </button>
+                </div>
+
+                <!-- Admin Tab Content Body -->
+                <div class="p-6">
+                    
+                    <!-- 1. Articles Admin Tab -->
+                    <div id="admin-subcontent-articles" class="admin-subcontent space-y-6">
+                        <div class="flex justify-between items-center">
+                            <h3 class="font-extrabold text-slate-900 dark:text-white text-lg">قائمة المقالات الطبية</h3>
+                            <button onclick="openArticleModal()" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold transition-all shadow-md">
+                                <i class="fa-solid fa-plus ml-1"></i> إضافة مقال جديد
+                            </button>
+                        </div>
+
+                        <!-- Articles Table -->
+                        <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800">
+                            <table class="w-full text-right text-xs">
+                                <thead class="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-extrabold">
+                                    <tr>
+                                        <th class="p-4">العنوان</th>
+                                        <th class="p-4">القسم</th>
+                                        <th class="p-4">تاريخ النشر</th>
+                                        <th class="p-4">الإجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-articles-tbody" class="divide-y divide-slate-200 dark:divide-slate-800">
+                                    <!-- Rendered dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- 2. Categories Admin Tab -->
+                    <div id="admin-subcontent-categories" class="admin-subcontent hidden space-y-6">
+                        <div class="flex justify-between items-center">
+                            <h3 class="font-extrabold text-slate-900 dark:text-white text-lg">أقسام المنصة</h3>
+                            <button onclick="openCategoryModal()" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold transition-all">
+                                <i class="fa-solid fa-plus ml-1"></i> إضافة قسم جديد
+                            </button>
+                        </div>
+                        <div id="admin-categories-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                            <!-- Rendered dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- 3. Users & Permissions Admin Tab -->
+                    <div id="admin-subcontent-users" class="admin-subcontent hidden space-y-6">
+                        <h3 class="font-extrabold text-slate-900 dark:text-white text-lg">إدارة المستخدمين والأدوار</h3>
+                        <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800">
+                            <table class="w-full text-right text-xs">
+                                <thead class="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-extrabold">
+                                    <tr>
+                                        <th class="p-4">الاسم / البريد</th>
+                                        <th class="p-4">الصلاحية (Role)</th>
+                                        <th class="p-4">الحالة</th>
+                                        <th class="p-4">تغيير الصلاحية</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-users-tbody" class="divide-y divide-slate-200 dark:divide-slate-800">
+                                    <!-- Dynamic content -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- 4. Settings Admin Tab -->
+                    <div id="admin-subcontent-settings" class="admin-subcontent hidden space-y-6">
+                        <h3 class="font-extrabold text-slate-900 dark:text-white text-lg">إعدادات النظام والذكاء الاصطناعي</h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-4 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950">
+                                <h4 class="font-bold text-sm text-brand-600 dark:text-teal-400">إعدادات الذكاء الاصطناعي (AI Prompt Guardrails)</h4>
+                                <div>
+                                    <label class="block text-xs font-bold mb-1">تعليمات المساعد الطبية (System Prompt)</label>
+                                    <textarea id="setting-ai-prompt" rows="4" class="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs outline-none">أنت مساعد ذكاء اصطناعي متخصص في طب وصحة الأسنان. أجب بدقة واستخدم لغة بسيطة وواضحة بدون تقديم تشخيص طبي نهائي.</textarea>
+                                </div>
+                                <button onclick="saveAISettings()" class="px-4 py-2 bg-brand-600 text-white rounded-xl text-xs font-bold">حفظ تعليمات AI</button>
+                            </div>
+
+                            <div class="space-y-4 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950">
+                                <h4 class="font-bold text-sm text-brand-600 dark:text-teal-400">إحصائيات المنصة الحية</h4>
+                                <div class="grid grid-cols-2 gap-3 text-center">
+                                    <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                                        <span class="block text-2xl font-black text-brand-600" id="stat-articles-count">0</span>
+                                        <span class="text-[11px] text-slate-500">مقالة منتشرة</span>
+                                    </div>
+                                    <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                                        <span class="block text-2xl font-black text-teal-600" id="stat-users-count">1</span>
+                                        <span class="text-[11px] text-slate-500">مستخدم مسجل</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-10 transition-colors">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+                <div class="flex items-center space-x-3 space-x-reverse">
+                    <div class="w-10 h-10 rounded-xl bg-brand-600 flex items-center justify-center text-white text-xl">🦷</div>
+                    <div>
+                        <span class="font-extrabold text-slate-900 dark:text-white">Dental AI Platform</span>
+                        <p class="text-xs text-slate-500">جميع الحقوق محفوظة © 2026</p>
+                    </div>
+                </div>
+                <div class="text-xs text-slate-500 dark:text-slate-400 text-center md:text-right">
+                    منصة تثقيفية وذكاء اصطناعي لطب الأسنان - تذكر دائماً مراجعة الطبيب المختص للمعاينة السريرية.
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ================= MODALS ================= -->
+
+    <!-- Auth Login / Register Modal -->
+    <div id="auth-modal" class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-5">
+            <div class="flex justify-between items-center">
+                <h3 class="text-xl font-extrabold text-slate-900 dark:text-white" id="auth-modal-title">تسجيل الدخول</h3>
+                <button onclick="closeAuthModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <form onsubmit="handleAuthSubmit(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold mb-1">البريد الإلكتروني</label>
+                    <input type="email" id="auth-email" required placeholder="name@example.com" class="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold mb-1">كلمة المرور</label>
+                    <input type="password" id="auth-password" required placeholder="••••••••" class="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold mb-1">نوع الحساب / الدور (محاكاة)</label>
+                    <select id="auth-role" class="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs outline-none font-bold">
+                        <option value="Super Admin">Super Admin (كامل الصلاحيات)</option>
+                        <option value="Admin">Admin (مدير محتوى ومستخدمين)</option>
+                        <option value="Editor">Editor (محرر مقالات)</option>
+                        <option value="User" selected>User (مستخدم عادي)</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full py-3.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs shadow-lg transition-all">
+                    دخول / تسجيل
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Article Add/Edit Modal -->
+    <div id="article-modal" class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center">
+                <h3 class="text-lg font-extrabold text-slate-900 dark:text-white" id="article-modal-title">إضافة مقال طبي جديد</h3>
+                <button onclick="closeArticleModal()" class="text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <form onsubmit="handleArticleSubmit(event)" class="space-y-4">
+                <input type="hidden" id="article-form-id">
+                <div>
+                    <label class="block text-xs font-bold mb-1">عنوان المقال</label>
+                    <input type="text" id="article-form-title" required class="w-full px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs outline-none">
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold mb-1">القسم</label>
+                        <select id="article-form-category" class="w-full px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs outline-none">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold mb-1">رابط الصورة التوضيحية (URL)</label>
+                        <input type="url" id="article-form-image" placeholder="https://images.unsplash.com/..." class="w-full px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold mb-1">المحتوى الطبي للمقال</label>
+                    <textarea id="article-form-content" rows="6" required class="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs outline-none"></textarea>
+                </div>
+                <button type="submit" class="w-full py-3 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs shadow-md transition-all">
+                    حفظ المقال
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Article View Reader Modal -->
+    <div id="reader-modal" class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-3xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-6 max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <div class="flex justify-between items-start">
+                <div>
+                    <span id="reader-category" class="px-3 py-1 rounded-full bg-teal-100 dark:bg-teal-950 text-teal-700 dark:text-teal-300 text-xs font-bold"></span>
+                    <h2 id="reader-title" class="text-2xl font-black text-slate-900 dark:text-white mt-2"></h2>
+                    <p id="reader-date" class="text-xs text-slate-400 mt-1"></p>
+                </div>
+                <button onclick="closeReaderModal()" class="text-slate-400 hover:text-slate-600 p-2">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            
+            <img id="reader-image" class="w-full h-64 object-cover rounded-2xl shadow-md" src="" alt="Dental Article">
+            
+            <div id="reader-content" class="text-slate-700 dark:text-slate-300 text-sm leading-relaxed space-y-4 whitespace-pre-line"></div>
+
+            <div class="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center">
+                <button onclick="bookmarkCurrentArticle()" id="reader-bookmark-btn" class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold flex items-center gap-2">
+                    <i class="fa-regular fa-bookmark"></i> إشارة مرجعية
+                </button>
+                <button onclick="closeReaderModal()" class="px-6 py-2 rounded-xl bg-brand-600 text-white text-xs font-bold">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ================= JAVASCRIPT LOGIC ================= -->
+    <script>
+        // --- 1. INITIAL DATA & STATE MANAGEMENT ---
+        
+        let currentUser = {
+            name: "زائر المنصة",
+            email: "guest@dental.ai",
+            role: "User", // Options: 'Super Admin', 'Admin', 'Editor', 'User'
+            isLoggedIn: false
+        };
+
+        let categories = [
+            { id: "cat-1", name: "تشريح الأسنان", icon: "fa-tooth", description: "بنية الفك، طبقات المينا والعاج والعصب" },
+            { id: "cat-2", name: "تقويم الأسنان", icon: "fa-grip-lines", description: "أنواع التقويم المعدني، الشفاف والعناية به" },
+            { id: "cat-3", name: "زراعة الأسنان", icon: "fa-screwdriver", description: "خطوات الزراعة، العظام والتعافي" },
+            { id: "cat-4", name: "علاج الجذور والعصب", icon: "fa-bolt", description: "أسباب ألم العصب، التنظيف والحشوات" },
+            { id: "cat-5", name: "أمراض اللثة", icon: "fa-shield-heart", description: "التهاب اللثة، النزيف، والوقاية من التراجع" },
+            { id: "cat-6", name: "طب أسنان الأطفال", icon: "fa-child", description: "الأسنان اللبنية، العادات اليومية والتسوس" }
+        ];
+
+        let articles = [
+            {
+                id: "art-1",
+                title: "دليل شامل عن زراعة الأسنان الحديثة والتعافي",
+                categoryId: "cat-3",
+                categoryName: "زراعة الأسنان",
+                date: "2026-03-20",
+                image: "https://images.unsplash.com/photo-1606811841689-23dfddce3e95?auto=format&fit=crop&w=800&q=80",
+                content: `تعتبر زراعة الأسنان الحل الأمثل والأكثر ديمومة لتعويض الأسنان المفقودة. تتكون الزرعة من وتد من التيتانيوم يُغرس في عظم الفك ليعمل كجذر صناعي، يلي ذلك وضع التاج التجميلي.\n\nخطوات العملية:\n1. التقييم بالأشعة المقطعية 3D.\n2. إعداد العظم وغرس وتد التيتانيوم.\n3. فترة الاندماج العظمي (من 2 إلى 4 أشهر).\n4. تثبيت التاج النهائي المصنوع من الزيركون.\n\nتتميز الزراعة بالثبات العالي والحفاظ على سلامة العظام والأسنان المجاورة.`
+            },
+            {
+                id: "art-2",
+                title: "كيف تتعامل مع ألم حشو العصب والأعراض المبكرة؟",
+                categoryId: "cat-4",
+                categoryName: "علاج الجذور والعصب",
+                date: "2026-03-22",
+                image: "https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?auto=format&fit=crop&w=800&q=80",
+                content: `عندما يصل التسوس العميق إلى حجرة العصب (البُلب)، يبدأ المريض بالشعور بألم حاد مستمر، خصوصاً عند تناول المشروبات الساخنة أو الباردة، أو أثناء النوم.\n\nيتضمن علاج العصب:\n- إزالة البكتيريا والأنسجة الملتهبة.\n- تنظيف وقنوات الجذر بدقة.\n- حشو القنوات بمادة طبية خاصة لمنع إعادة التلوث.\n- وضع تاج (طرابوش) لحماية السن من الانكسار مستقبلاً.`
+            },
+            {
+                id: "art-3",
+                title: "الفرق بين التقويم الشفاف والتقويم المعدني التقليدي",
+                categoryId: "cat-2",
+                categoryName: "تقويم الأسنان",
+                date: "2026-03-24",
+                image: "https://images.unsplash.com/photo-1598256989800-fe5f95da9787?auto=format&fit=crop&w=800&q=80",
+                content: `تطور تقويم الأسنان بشكل كبير لتلبية الاحتياجات التجميلية والوظيفية.\n\nالتقويم الشفاف (Invisalign):\n- غير مرئي تقريباً وقابل للإزالة أثناء الأكل.\n- يحتاج التزاماً عالياً بارتدائه 22 ساعة يومياً.\n\nالتقويم المعدني:\n- فعال جداً في الحالات المعقدة وتكلفته أقل.\n- يحتاج عناية خاصة بالفرشاة المخصصة لمنع تراكم اللويحات.`
+            }
+        ];
+
+        let bookmarks = []; // Article IDs
+        let currentReaderArticleId = null;
+
+        const dailyTips = [
+            { title: "تنظيف الأسنان بخيط الأسنان المائي", desc: "استخدام خيط الأسنان المائي يومياً يساعد في إزالة 99% من الترسبات بين الأسنان وفي الأماكن الدقيقة التي لا تصل إليها الفرشاة العادية." },
+            { title: "استبدال فرشاة الأسنان دورياً", desc: "احرص على تغيير فرشاة الأسنان كل 3 أشهر أو بمجرد تلف شعيراتها لضمان إزالة البكتيريا بفعالية." },
+            { title: "تجنب المشروبات الحمضية بكثرة", desc: "المشروبات الغازية والعصائر الحمضية تسبب تآكل طبقة المينا، يفضل استخدام القشة (المصاصة) والمضمضة بالماء بعد تناولها." }
+        ];
+        let currentTipIndex = 0;
+
+        // --- 2. INITIALIZATION & ROUTING ---
+
+        window.onload = function() {
+            initThreeJS();
+            renderCategories();
+            renderFeaturedArticles();
+            renderLibrary();
+            updateAdminDashboard();
+            updateUserUI();
+        };
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(b => {
+                b.classList.remove('text-brand-700', 'bg-white', 'shadow-sm', 'dark:bg-slate-700', 'dark:text-teal-300');
+                b.classList.add('text-slate-600', 'dark:text-slate-300');
+            });
+
+            const targetPage = document.getElementById(`page-${tabId}`);
+            if(targetPage) targetPage.classList.remove('hidden');
+
+            const activeNavBtn = document.getElementById(`nav-${tabId}`);
+            if(activeNavBtn) {
+                activeNavBtn.classList.add('text-brand-700', 'bg-white', 'shadow-sm', 'dark:bg-slate-700', 'dark:text-teal-300');
+            }
+
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            const themeIcon = document.getElementById('theme-icon');
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                themeIcon.className = 'fa-solid fa-moon';
+            } else {
+                html.classList.add('dark');
+                themeIcon.className = 'fa-solid fa-sun';
+            }
+        }
+
+        function toggleLanguage() {
+            const langBtn = document.getElementById('lang-btn');
+            showToast(langBtn.innerText === 'EN' ? 'تم التبديل للغة الإنجليزية (قريباً)' : 'تم التبديل للغة العربية');
+            langBtn.innerText = langBtn.innerText === 'EN' ? 'AR' : 'EN';
+        }
+
+        function showToast(msg, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `pointer-events-auto px-4 py-3 rounded-2xl shadow-xl text-xs font-bold text-white flex items-center gap-2 transition-all transform translate-y-2 opacity-0 ${type === 'error' ? 'bg-rose-600' : 'bg-slate-900 border border-slate-700'}`;
+            toast.innerHTML = `<i class="fa-solid fa-circle-info"></i> ${msg}`;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // --- 3. THREE.JS INTERACTIVE 3D TEETH MODEL ---
+
+        function initThreeJS() {
+            const container = document.getElementById('three-canvas-container');
+            if (!container) return;
+
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            container.appendChild(renderer.domElement);
+
+            // Create stylized 3D Teeth Jaw Arch Group
+            const jawGroup = new THREE.Group();
+
+            // Jaw Arch Mesh
+            const archGeometry = new THREE.TorusGeometry(2, 0.4, 16, 32, Math.PI);
+            const archMaterial = new THREE.MeshPhongMaterial({ color: 0xe2e8f0, shininess: 80 });
+            const arch = new THREE.Mesh(archGeometry, archMaterial);
+            arch.rotation.x = Math.PI / 2;
+            jawGroup.add(arch);
+
+            // Individual Teeth Capsules around Arch
+            const toothGeo = new THREE.CylinderGeometry(0.2, 0.25, 0.8, 16);
+            const toothMat = new THREE.MeshPhongMaterial({ color: 0xffffff, shininess: 100 });
+
+            for (let i = 0; i <= 10; i++) {
+                const angle = (i / 10) * Math.PI;
+                const x = Math.cos(angle) * 2;
+                const y = Math.sin(angle) * 2;
+
+                const tooth = new THREE.Mesh(toothGeo, toothMat);
+                tooth.position.set(x, y, 0.3);
+                tooth.rotation.x = Math.PI / 2;
+                jawGroup.add(tooth);
+            }
+
+            scene.add(jawGroup);
+
+            // Lights
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+            scene.add(ambientLight);
+
+            const dirLight = new THREE.DirectionalLight(0x06b6d4, 1);
+            dirLight.position.set(5, 5, 5);
+            scene.add(dirLight);
+
+            camera.position.z = 6;
+
+            // Mouse Interaction Drag to Rotate
+            let isDragging = false;
+            let previousMousePosition = { x: 0, y: 0 };
+
+            container.addEventListener('mousedown', (e) => { isDragging = true; });
+            container.addEventListener('mouseup', () => { isDragging = false; });
+            container.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    const deltaMove = {
+                        x: e.offsetX - previousMousePosition.x,
+                        y: e.offsetY - previousMousePosition.y
+                    };
+                    jawGroup.rotation.y += deltaMove.x * 0.01;
+                    jawGroup.rotation.x += deltaMove.y * 0.01;
+                }
+                previousMousePosition = { x: e.offsetX, y: e.offsetY };
+            });
+
+            // Touch support for mobile
+            container.addEventListener('touchstart', (e) => {
+                isDragging = true;
+                previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            });
+            container.addEventListener('touchend', () => { isDragging = false; });
+            container.addEventListener('touchmove', (e) => {
+                if (isDragging) {
+                    const deltaMove = {
+                        x: e.touches[0].clientX - previousMousePosition.x,
+                        y: e.touches[0].clientY - previousMousePosition.y
+                    };
+                    jawGroup.rotation.y += deltaMove.x * 0.01;
+                    jawGroup.rotation.x += deltaMove.y * 0.01;
+                    previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                }
+            });
+
+            // Animation Loop
+            function animate() {
+                requestAnimationFrame(animate);
+                if (!isDragging) {
+                    jawGroup.rotation.y += 0.005;
+                }
+                renderer.render(scene, camera);
+            }
+            animate();
+
+            // Resize handle
+            window.addEventListener('resize', () => {
+                if (!container) return;
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.clientWidth, container.clientHeight);
+            });
+        }
+
+        // --- 4. RENDERERS & HOME UI ---
+
+        function renderCategories() {
+            const grid = document.getElementById('home-categories-grid');
+            const filterDropdown = document.getElementById('library-category-filter');
+            const formCategorySelect = document.getElementById('article-form-category');
+
+            if (grid) {
+                grid.innerHTML = categories.map(c => `
+                    <div onclick="filterLibraryByCategory('${c.id}')" class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800 hover:bg-teal-50 dark:hover:bg-slate-700/80 border border-slate-200 dark:border-slate-700/60 cursor-pointer transition-all text-center group">
+                        <div class="w-12 h-12 mx-auto rounded-xl bg-teal-100 dark:bg-teal-950 text-brand-600 dark:text-teal-300 flex items-center justify-center text-xl mb-3 group-hover:scale-110 transition-all shadow-sm">
+                            <i class="fa-solid ${c.icon}"></i>
+                        </div>
+                        <h3 class="font-extrabold text-xs text-slate-800 dark:text-slate-200">${c.name}</h3>
+                    </div>
+                `).join('');
+            }
+
+            if (filterDropdown) {
+                filterDropdown.innerHTML = `<option value="ALL">جميع الأقسام</option>` + 
+                    categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+            }
+
+            if (formCategorySelect) {
+                formCategorySelect.innerHTML = categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+            }
+        }
+
+        function renderFeaturedArticles() {
+            const container = document.getElementById('home-featured-articles');
+            if (!container) return;
+
+            container.innerHTML = articles.map(a => `
+                <div class="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm hover:shadow-xl transition-all group flex flex-col justify-between">
+                    <div>
+                        <div class="relative h-48 overflow-hidden">
+                            <img src="${a.image}" alt="${a.title}" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-500">
+                            <span class="absolute top-3 right-3 px-3 py-1 rounded-full bg-slate-900/70 text-white text-[11px] font-bold backdrop-blur-md">
+                                ${a.categoryName}
+                            </span>
+                        </div>
+                        <div class="p-5 space-y-2">
+                            <h3 class="font-extrabold text-base text-slate-900 dark:text-white line-clamp-2">${a.title}</h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-3 leading-relaxed">${a.content}</p>
+                        </div>
+                    </div>
+                    <div class="p-5 pt-0">
+                        <button onclick="openReaderModal('${a.id}')" class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-brand-600 hover:text-white dark:hover:bg-brand-600 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all flex items-center justify-center gap-2">
+                            قراءة المقال <i class="fa-solid fa-arrow-left text-[10px]"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function nextDailyTip() {
+            currentTipIndex = (currentTipIndex + 1) % dailyTips.length;
+            document.getElementById('daily-tip-title').innerText = dailyTips[currentTipIndex].title;
+            document.getElementById('daily-tip-desc').innerText = dailyTips[currentTipIndex].desc;
+        }
+
+        function handleHomeSearch(e) {
+            if (e.key === 'Enter') executeHomeSearch();
+        }
+
+        function executeHomeSearch() {
+            const query = document.getElementById('home-search-input').value.trim();
+            if (!query) return;
+            switchTab('library');
+            document.getElementById('library-search-input').value = query;
+            filterLibraryArticles();
+        }
+
+        // --- 5. AI DENTAL ASSISTANT (GEMINI INTEGRATION) ---
+
+        async function handleChatSubmit(e) {
+            e.preventDefault();
+            const inputEl = document.getElementById('chat-input');
+            const prompt = inputEl.value.trim();
+            if (!prompt) return;
+
+            // Append User Message
+            appendChatMessage(prompt, 'user');
+            inputEl.value = '';
+
+            // Loading Indicator Bot Message
+            const loadingId = appendChatMessage('جاري التفكير وتحليل الاستفسار الطبي...', 'bot', true);
+
+            try {
+                // Calling Gemini API
+                const systemInstruction = "أنت مساعد ذكاء اصطناعي متخصص في طب وصحة الأسنان. أجب باللغة العربية بأسلوب موثوق وتثقيفي وبسيط. تنبيه مهم: لا تقدم تشخيصاً طبيّاً نهائياً ولا تصف أدوية وجرعات حاصرة، وانصح دائماً بزيارة طبيب الأسنان إذا تطلب الأمر أو إذا كانت هناك أعراض طارئة.";
+                const apiKey = ""; // Canvas handles auto-injection at runtime if left empty
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }],
+                        systemInstruction: { parts: [{ text: systemInstruction }] }
+                    })
+                });
+
+                const data = await response.json();
+                const replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || "عذراً، لم أتمكن من الحصول على إجابة دقيقة حالياً. يرجى إعادة المحاولة.";
+
+                // Remove loading and show reply
+                removeChatMessage(loadingId);
+                appendChatMessage(replyText, 'bot');
+
+            } catch (err) {
+                console.error(err);
+                removeChatMessage(loadingId);
+                appendChatMessage("حدث خطأ أثناء الاتصال بالذكاء الاصطناعي. يرجى التأكد من الاتصال بالإنترنت.", 'bot');
+            }
+        }
+
+        function sendQuickChip(text) {
+            document.getElementById('chat-input').value = text;
+            handleChatSubmit(new Event('submit'));
+        }
+
+        function appendChatMessage(text, sender, isLoading = false) {
+            const container = document.getElementById('chat-messages');
+            const msgId = 'msg-' + Date.now();
+            const isUser = sender === 'user';
+
+            const msgDiv = document.createElement('div');
+            msgDiv.id = msgId;
+            msgDiv.className = `flex gap-3 max-w-3xl ${isUser ? 'mr-auto flex-row-reverse' : ''}`;
+
+            const iconHtml = isUser ? 
+                `<div class="w-8 h-8 rounded-lg bg-slate-700 text-white flex-shrink-0 flex items-center justify-center text-xs font-bold">أنت</div>` :
+                `<div class="w-8 h-8 rounded-lg bg-teal-600 text-white flex-shrink-0 flex items-center justify-center text-sm shadow"><i class="fa-solid fa-tooth"></i></div>`;
+
+            const bgClasses = isUser ? 
+                'bg-brand-600 text-white rounded-2xl rounded-tl-none shadow-md' : 
+                'bg-white dark:bg-slate-900 p-4 rounded-2xl rounded-tr-none shadow-sm border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200';
+
+            msgDiv.innerHTML = `
+                ${iconHtml}
+                <div class="${bgClasses} p-4 text-sm leading-relaxed whitespace-pre-line ${isLoading ? 'animate-pulse text-slate-400' : ''}">
+                    ${text}
+                </div>
+            `;
+
+            container.appendChild(msgDiv);
+            container.scrollTop = container.scrollHeight;
+            return msgId;
+        }
+
+        function removeChatMessage(msgId) {
+            const el = document.getElementById(msgId);
+            if (el) el.remove();
+        }
+
+        function clearChatHistory() {
+            const container = document.getElementById('chat-messages');
+            container.innerHTML = `
+                <div class="flex gap-3 max-w-3xl">
+                    <div class="w-8 h-8 rounded-lg bg-teal-600 text-white flex-shrink-0 flex items-center justify-center text-sm shadow">
+                        <i class="fa-solid fa-tooth"></i>
+                    </div>
+                    <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl rounded-tr-none shadow-sm border border-slate-200 dark:border-slate-800 text-sm space-y-2 text-slate-800 dark:text-slate-200">
+                        <p class="font-bold text-brand-600 dark:text-teal-400">تم مسح المحادثة. كيف يمكنني مساعدتك الآن؟ 🦷</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- 6. DENTAL LIBRARY & READER ---
+
+        function renderLibrary() {
+            const grid = document.getElementById('library-articles-grid');
+            if (!grid) return;
+
+            grid.innerHTML = articles.map(a => {
+                const isBookmarked = bookmarks.includes(a.id);
+                return `
+                <div class="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm hover:shadow-xl transition-all flex flex-col justify-between">
+                    <div>
+                        <div class="relative h-48 overflow-hidden">
+                            <img src="${a.image}" alt="${a.title}" class="w-full h-full object-cover">
+                            <span class="absolute top-3 right-3 px-3 py-1 rounded-full bg-slate-900/70 text-white text-[11px] font-bold backdrop-blur-md">
+                                ${a.categoryName}
+                            </span>
+                            <button onclick="toggleBookmark('${a.id}')" class="absolute top-3 left-3 w-8 h-8 rounded-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-md flex items-center justify-center text-xs ${isBookmarked ? 'text-amber-500' : 'text-slate-400'}">
+                                <i class="fa-${isBookmarked ? 'solid' : 'regular'} fa-bookmark"></i>
+                            </button>
+                        </div>
+                        <div class="p-5 space-y-2">
+                            <h3 class="font-extrabold text-base text-slate-900 dark:text-white line-clamp-2">${a.title}</h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-3 leading-relaxed">${a.content}</p>
+                        </div>
+                    </div>
+                    <div class="p-5 pt-0">
+                        <button onclick="openReaderModal('${a.id}')" class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-brand-600 hover:text-white dark:hover:bg-brand-600 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all">
+                            تصفح المقال بالكامل
+                        </button>
+                    </div>
+                </div>
+            `}).join('');
+        }
+
+        function filterLibraryArticles() {
+            const query = document.getElementById('library-search-input').value.toLowerCase();
+            const catId = document.getElementById('library-category-filter').value;
+
+            const filtered = articles.filter(a => {
+                const matchesQuery = a.title.toLowerCase().includes(query) || a.content.toLowerCase().includes(query);
+                const matchesCat = catId === 'ALL' || a.categoryId === catId;
+                return matchesQuery && matchesCat;
+            });
+
+            const grid = document.getElementById('library-articles-grid');
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-12 text-slate-400 font-bold text-sm">لم يتم العثور على مقالات مطابقة للبحث.</div>`;
+            } else {
+                grid.innerHTML = filtered.map(a => `
+                    <div class="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm hover:shadow-xl transition-all flex flex-col justify-between">
+                        <div>
+                            <div class="relative h-48 overflow-hidden">
+                                <img src="${a.image}" alt="${a.title}" class="w-full h-full object-cover">
+                                <span class="absolute top-3 right-3 px-3 py-1 rounded-full bg-slate-900/70 text-white text-[11px] font-bold backdrop-blur-md">
+                                    ${a.categoryName}
+                                </span>
+                            </div>
+                            <div class="p-5 space-y-2">
+                                <h3 class="font-extrabold text-base text-slate-900 dark:text-white line-clamp-2">${a.title}</h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-3 leading-relaxed">${a.content}</p>
+                            </div>
+                        </div>
+                        <div class="p-5 pt-0">
+                            <button onclick="openReaderModal('${a.id}')" class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-brand-600 hover:text-white text-xs font-bold transition-all">
+                                قراءة المقال
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function filterLibraryByCategory(catId) {
+            switchTab('library');
+            document.getElementById('library-category-filter').value = catId;
+            filterLibraryArticles();
+        }
+
+        function toggleBookmark(artId) {
+            if (bookmarks.includes(artId)) {
+                bookmarks = bookmarks.filter(id => id !== artId);
+                showToast('تمت إزالة المقال من المفضلة');
+            } else {
+                bookmarks.push(artId);
+                showToast('تم إضافة المقال إلى المفضلة ⭐');
+            }
+            renderLibrary();
+        }
+
+        function openReaderModal(artId) {
+            const article = articles.find(a => a.id === artId);
+            if (!article) return;
+
+            currentReaderArticleId = artId;
+            document.getElementById('reader-category').innerText = article.categoryName;
+            document.getElementById('reader-title').innerText = article.title;
+            document.getElementById('reader-date').innerText = `تاريخ النشر: ${article.date}`;
+            document.getElementById('reader-image').src = article.image;
+            document.getElementById('reader-content').innerText = article.content;
+
+            document.getElementById('reader-modal').classList.remove('hidden');
+        }
+
+        function closeReaderModal() {
+            document.getElementById('reader-modal').classList.add('hidden');
+        }
+
+        function bookmarkCurrentArticle() {
+            if (currentReaderArticleId) toggleBookmark(currentReaderArticleId);
+        }
+
+        // --- 7. ADMIN DASHBOARD CRUD & AUTHORIZATION ---
+
+        function switchAdminSubTab(subId) {
+            document.querySelectorAll('.admin-subcontent').forEach(c => c.classList.add('hidden'));
+            document.querySelectorAll('.admin-subtab').forEach(t => {
+                t.classList.remove('text-brand-600', 'border-b-2', 'border-brand-600', 'bg-white', 'dark:bg-slate-900');
+                t.classList.add('text-slate-500');
+            });
+
+            document.getElementById(`admin-subcontent-${subId}`).classList.remove('hidden');
+            const tabBtn = document.getElementById(`admin-tab-${subId}`);
+            tabBtn.classList.add('text-brand-600', 'border-b-2', 'border-brand-600', 'bg-white', 'dark:bg-slate-900');
+        }
+
+        function updateAdminDashboard() {
+            // Render Articles Table
+            const tbody = document.getElementById('admin-articles-tbody');
+            if (tbody) {
+                tbody.innerHTML = articles.map(a => `
+                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                        <td class="p-4 font-bold">${a.title}</td>
+                        <td class="p-4 text-slate-500">${a.categoryName}</td>
+                        <td class="p-4 text-slate-400">${a.date}</td>
+                        <td class="p-4 flex gap-2">
+                            <button onclick="editArticle('${a.id}')" class="px-2.5 py-1 rounded-lg bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300 font-bold">تعديل</button>
+                            <button onclick="deleteArticle('${a.id}')" class="px-2.5 py-1 rounded-lg bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300 font-bold">حذف</button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+
+            // Update Stats
+            document.getElementById('stat-articles-count').innerText = articles.length;
+        }
+
+        function openArticleModal(artId = null) {
+            renderCategories(); // Ensure options loaded
+            if (artId) {
+                const article = articles.find(a => a.id === artId);
+                document.getElementById('article-form-id').value = article.id;
+                document.getElementById('article-form-title').value = article.title;
+                document.getElementById('article-form-category').value = article.categoryId;
+                document.getElementById('article-form-image').value = article.image;
+                document.getElementById('article-form-content').value = article.content;
+                document.getElementById('article-modal-title').innerText = "تعديل المقال الطبي";
+            } else {
+                document.getElementById('article-form-id').value = "";
+                document.getElementById('article-form-title').value = "";
+                document.getElementById('article-form-image').value = "";
+                document.getElementById('article-form-content').value = "";
+                document.getElementById('article-modal-title').innerText = "إضافة مقال طبي جديد";
+            }
+            document.getElementById('article-modal').classList.remove('hidden');
+        }
+
+        function closeArticleModal() {
+            document.getElementById('article-modal').classList.add('hidden');
+        }
+
+        function handleArticleSubmit(e) {
+            e.preventDefault();
+            const id = document.getElementById('article-form-id').value;
+            const title = document.getElementById('article-form-title').value;
+            const categoryId = document.getElementById('article-form-category').value;
+            const category = categories.find(c => c.id === categoryId);
+            const image = document.getElementById('article-form-image').value || "https://images.unsplash.com/photo-1606811841689-23dfddce3e95?auto=format&fit=crop&w=800&q=80";
+            const content = document.getElementById('article-form-content').value;
+
+            if (id) {
+                // Edit
+                const index = articles.findIndex(a => a.id === id);
+                articles[index] = { ...articles[index], title, categoryId, categoryName: category.name, image, content };
+                showToast('تم تعديل المقال بنجاح');
+            } else {
+                // Add
+                const newArticle = {
+                    id: 'art-' + Date.now(),
+                    title,
+                    categoryId,
+                    categoryName: category.name,
+                    date: new Date().toISOString().split('T')[0],
+                    image,
+                    content
+                };
+                articles.unshift(newArticle);
+                showToast('تم نشر المقال الجديد بنجاح 🎉');
+            }
+
+            closeArticleModal();
+            renderFeaturedArticles();
+            renderLibrary();
+            updateAdminDashboard();
+        }
+
+        function editArticle(artId) {
+            openArticleModal(artId);
+        }
+
+        function deleteArticle(artId) {
+            if (confirm('هل أنت تأكد من رغبتك في حذف هذا المقال الطبي؟')) {
+                articles = articles.filter(a => a.id !== artId);
+                renderFeaturedArticles();
+                renderLibrary();
+                updateAdminDashboard();
+                showToast('تم حذف المقال');
+            }
+        }
+
+        function saveAISettings() {
+            showToast('تم حفظ إعدادات وحمايات الذكاء الاصطناعي');
+        }
+
+        // --- 8. AUTHENTICATION & USER MANAGEMENT ---
+
+        function openAuthModal() {
+            document.getElementById('auth-modal').classList.remove('hidden');
+        }
+
+        function closeAuthModal() {
+            document.getElementById('auth-modal').classList.add('hidden');
+        }
+
+        function handleAuthSubmit(e) {
+            e.preventDefault();
+            const email = document.getElementById('auth-email').value;
+            const role = document.getElementById('auth-role').value;
+
+            currentUser = {
+                name: email.split('@')[0],
+                email: email,
+                role: role,
+                isLoggedIn: true
+            };
+
+            updateUserUI();
+            closeAuthModal();
+            showToast(`أهلاً بك ${currentUser.name}! تم تسجيل الدخول بصفة (${currentUser.role})`);
+        }
+
+        function updateUserUI() {
+            const userArea = document.getElementById('user-area');
+            const adminBadge = document.getElementById('admin-user-badge');
+
+            if (currentUser.isLoggedIn) {
+                userArea.innerHTML = `
+                    <div class="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        <span class="text-xs font-bold text-slate-800 dark:text-slate-200">${currentUser.name} (${currentUser.role})</span>
+                    </div>
+                `;
+                if (adminBadge) adminBadge.innerText = currentUser.role;
+            } else {
+                userArea.innerHTML = `
+                    <button onclick="openAuthModal()" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-brand-600 to-teal-500 hover:from-brand-700 hover:to-teal-600 text-white font-bold text-sm shadow-md transition-all">
+                        <i class="fa-solid fa-right-to-bracket ml-1.5"></i> تسجيل الدخول
+                    </button>
+                `;
+            }
+        }
+
+        function logoutUser() {
+            currentUser = { name: "زائر", email: "", role: "User", isLoggedIn: false };
+            updateUserUI();
+            switchTab('home');
+            showToast('تم تسجيل الخروج');
+        }
+
+    </script>
+</body>
+</html>
